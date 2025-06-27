@@ -1,0 +1,114 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.hero-bg {
+    background: url('../images/community-bg.jpg') center center/cover no-repeat;
+    position: relative;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.content {
+    position: relative;
+    color: #fff;
+    text-align: center;
+    z-index: 1;
+    max-width: 600px;
+    margin: 0 1rem;
+}
+
+h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    letter-spacing: 2px;
+}
+
+p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn {
+    background: #00b894;
+    color: #fff;
+    padding: 0.8rem 2rem;
+    border: none;
+    border-radius: 30px;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: #00997a;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid #00b894;
+    color: #00b894;
+}
+
+.btn-outline:hover {
+    background: #00b894;
+    color: #fff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .content {
+        max-width: 90vw;
+    }
+    h1 {
+        font-size: 2.2rem;
+    }
+    p {
+        font-size: 1rem;
+    }
+    .btn {
+        padding: 0.7rem 1.5rem;
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-bg {
+        align-items: flex-start;
+        padding-top: 60px;
+    }
+    .content {
+        max-width: 98vw;
+        padding: 0 0.5rem;
+    }
+    h1 {
+        font-size: 1.4rem;
+    }
+    p {
+        font-size: 0.95rem;
+    }
+    .buttons {
+        flex-direction: column;
+        gap: 0.7rem;
+    }
+}

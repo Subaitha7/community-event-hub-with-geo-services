@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Community Event Hub with Geo-Services</title>
+    <!-- Responsive meta tag -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="hero-bg">
+        <div class="overlay"></div>
+        <div class="content">
+            <h1>Community Event Hub</h1>
+            <p>
+                Discover, share, and join local events with ease! Our platform connects communities by letting you search for events near you, explore them on an interactive map, and participate in what matters most—right where you are.
+            </p>
+            <div class="buttons">
+                <a href="{{ url_for('login') }}" class="btn">Login</a>
+                <a href="{{ url_for('signup') }}" class="btn btn-outline">Sign Up</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
