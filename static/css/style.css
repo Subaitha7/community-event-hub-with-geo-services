@@ -112,3 +112,466 @@ p {
         gap: 0.7rem;
     }
 }
+
+.signup-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.signup-form input[type="text"],
+.signup-form input[type="password"] {
+    width: 220px;
+    padding: 0.7rem;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+}
+
+.checkbox-label {
+    color: #fff;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.flash {
+    margin-bottom: 1rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    display: inline-block;
+}
+.flash.danger { background: #ff7675; color: #fff; }
+.flash.success { background: #00b894; color: #fff; }
+.flash.warning { background: #fdcb6e; color: #222; }
+
+
+body {
+    background: url('../images/dashboard-bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.dashboard-header {
+    position: relative;
+    top: 0; left: 0; width: 100%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 0 2rem 0 2rem; /* Remove top padding */
+    z-index: 2;
+    gap: 3rem;
+    margin-bottom: 1.5rem;
+}
+
+.dashboard-header-left {
+    flex: 1;
+}
+
+.dashboard-header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-right: 2rem; /* Inward shift for buttons */
+}
+
+.welcome-msg {
+    color: #fff;
+    font-size: 2.2rem;
+    font-weight: 600;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    margin-bottom: 0.5rem;
+}
+
+.role-msg {
+    color: #fff;
+    font-size: 1.1rem;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.btn {
+    background: #00b894;
+    color: #fff;
+    padding: 0.9rem 2.3rem;
+    border: none;
+    border-radius: 30px;
+    font-size: 1.15rem;
+    text-decoration: none;
+    transition: background 0.2s;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.09);
+}
+
+.btn:hover {
+    background: #00997a;
+}
+
+.main-content {
+    position: relative;
+    z-index: 1;
+    margin-top: 0;        /* No margin-top */
+    margin-left: 0;       /* No margin-left */
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+}
+
+.filter-bar {
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.filter-bar input[type="text"],
+.filter-bar input[type="date"] {
+    width: 100%;
+    max-width: 240px;
+    padding: 0.8rem 1.2rem;
+    border-radius: 30px;
+    border: 1px solid #ccc;
+    font-size: 1.1rem;
+    background: #fff;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.filter-bar input[type="number"] {
+    width: 100%;
+    max-width: 240px;
+    padding: 0.8rem 1.2rem;
+    border-radius: 30px;
+    border: 1px solid #ccc;
+    font-size: 1.1rem;
+    background: #fff;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.filter-bar .btn {
+    padding: 0.8rem 2.3rem;
+    font-size: 1.1rem;
+}
+
+.event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.event-card {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 1.5rem;
+}
+
+.event-icon {
+    width: 60px;
+    height: 60px;
+    margin-right: 1.5rem;
+}
+
+.event-details {
+    flex: 1;
+}
+
+.event-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.event-meta {
+    font-size: 0.95rem;
+    color: #888;
+}
+
+/* Upload Event Form (on separate page) */
+.upload-form-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 90vh;
+}
+
+.upload-form {
+    background: rgba(255,255,255,0.92);
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.11);
+    padding: 2.5rem 2.5rem 2rem 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.upload-form h2 {
+    margin-bottom: 1rem;
+    text-align: center;
+    color: #00b894;
+}
+
+.upload-form input[type="text"],
+.upload-form input[type="date"],
+.upload-form textarea,
+.upload-form input[type="file"] {
+    width: 100%;
+    padding: 0.9rem 1.2rem;
+    border-radius: 30px;
+    border: 1px solid #ccc;
+    font-size: 1.1rem;
+    background: #fff;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.upload-form textarea {
+    border-radius: 20px;
+    min-height: 80px;
+    resize: vertical;
+}
+
+.upload-form .btn {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.btn-cancel {
+    background: #e5e5e5;
+    color: #222;
+    margin-top: 0.5rem;
+    text-align: center;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+.btn-cancel:hover {
+    background: #b2bec3;
+    color: #111;
+}
+
+
+.dashboard-content-left {
+    flex: 0 1 900px; /* Do not grow, can shrink, basis 900px */
+    max-width: 900px;
+    min-width: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.dashboard-content-right {
+    flex: 0 0 320px; /* Fixed width */
+    max-width: 320px;
+    min-width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.geo-services {
+    background: rgba(255,255,255,0.7);
+    border-radius: 10px;
+    min-height: 180px;
+    margin-top: 0;
+    padding: 1.5rem;
+    width: 320px;
+    box-sizing: border-box;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* Ensure event list and cards do not overflow */
+.event-list {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.event-card {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.file-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.7rem;
+    background: #f1f2f6;
+    border-radius: 30px;
+    padding: 0.9rem 1.2rem;
+    font-size: 1.1rem;
+    color: #636e72;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 0.2rem;
+    border: 1px solid #ccc;
+    width: 100%;
+    box-sizing: border-box;
+}
+.file-label:hover {
+    background: #dfe6e9;
+}
+.file-label-icon {
+    font-size: 1.6rem;
+}
+.file-label-text {
+    font-size: 1.1rem;
+}
+
+
+@media (max-width: 1200px) {
+    .dashboard-content-left {
+        max-width: 100%;
+        flex-basis: 100%;
+    }
+    .dashboard-content-right {
+        min-width: 260px;
+        max-width: 260px;
+    }
+    .geo-services {
+        width: 260px;
+    }
+}
+@media (max-width: 900px) {
+    .main-content {
+        flex-direction: column;
+    }
+    .dashboard-content-right,
+    .geo-services {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-header { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 0.5rem;}
+    .main-content { margin-top: 1rem; margin-left: 0; padding: 1rem;}
+    .dashboard-content-right, .dashboard-content-left { width: 100%; }
+    .geo-services { margin-top: 1rem; }
+    .filter-bar { flex-direction: column; gap: 1rem; }
+}
+
+.event-card {
+    display: flex;
+    justify-content: space-between; /* Helps separate details from actions */
+    align-items: center;
+}
+
+.event-actions {
+    margin-left: 1rem;
+}
+
+.attend-btn {
+    background: #5e72e4; /* A different color for attend button */
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+}
+
+.attend-btn:hover {
+    background: #324cdd;
+}
+
+.btn-attended {
+    background-color: #2dce89;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 30px;
+    border: none;
+    font-size: 0.9rem;
+    cursor: not-allowed;
+}
+
+/* --- Profile Page Enhancements --- */
+.profile-content {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.profile-section {
+    margin-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 1.5rem;
+}
+
+.profile-section h2 {
+    color: #00b894;
+    margin-bottom: 1rem;
+}
+
+.event-list-profile, .attendee-list {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.event-list-profile li, .attendee-list li {
+    background: #f7f7f7;
+    padding: 0.8rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.organized-event-card {
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.organized-event-card h3 {
+    margin-top: 0;
+}
+
+#map {
+    height: 400px; /* Adjust height as needed */
+    width: 100%;
+    border-radius: 10px;
+}
+
+.event-title-clickable {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.event-title-clickable:hover {
+    color: #00b894; /* Or your theme's primary color */
+}
+
+.event-detailed-description {
+    margin-top: 15px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.detailed-text {
+    white-space: pre-wrap; /* This tells the browser to respect newlines and wrap text! */
+}

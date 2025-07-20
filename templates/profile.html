@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile | Community Event Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="top-bar">
+        <a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
+        <a href="{{ url_for('logout') }}" class="btn logout-btn">Logout</a>
+    </div>
+
+    <div class="profile-content">
+        <h1>Profile</h1>
+        <p><strong>Username:</strong> {{ username }}</p>
+
+        <!-- --- NEW: Section for events user is attending --- -->
+        <div class="profile-section">
+            <h2>Events I'm Attending</h2>
+            {% if attending_events %}
+                <ul class="event-list-profile">
+                {% for event in attending_events %}
+                    <li>{{ event.name }} - {{ event.date }} at {{ event.location }}</li>
+                {% endfor %}
+                </ul>
+            {% else %}
+                <p>You are not attending any events yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- --- NEW: Section for organizers --- -->
+        {% if is_organizer %}
+        <div class="profile-section">
+            <h2>My Uploaded Events & Attendees</h2>
+            {% if my_events_with_attendees %}
+                {% for event in my_events_with_attendees %}
+                <div class="organized-event-card">
+                    <h3>{{ event.name }}</h3>
+                    <p><strong>Attendees ({{ event.attendees|length }}):</strong></p>
+                    {% if event.attendees %}
+                        <ul class="attendee-list">
+                        {% for attendee in event.attendees %}
+                            <li>{{ attendee.username }}</li>
+                        {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No one has signed up to attend yet.</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>You have not uploaded any events.</p>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
+

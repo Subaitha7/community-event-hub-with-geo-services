@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload Event | Community Event Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="upload-form-wrapper">
+        <form class="upload-form" method="POST" enctype="multipart/form-data" action="{{ url_for('upload_event') }}">
+           <h2>Upload New Event</h2>
+           <input type="text" name="name" placeholder="Event Name" required>
+           <input type="text" name="location" placeholder="Location" required>
+           <input type="date" name="date" required>
+           <textarea name="description" placeholder="Short Description" required></textarea>
+           <textarea name="detailed_description" placeholder="Detailed Event Information (e.g., schedule, what to bring, contact info)" rows="6"></textarea>
+           <input type="text" name="keywords" placeholder="Keywords (comma-separated)" required>
+           <label for="icon-upload" class="file-label">
+              <span class="file-label-icon">&#128247;</span>
+              <span class="file-label-text">Event Icon / Logo (PNG, JPG, etc.)</span>
+           </label>
+           <input id="icon-upload" type="file" name="icon" accept="image/*" style="display:none;">
+           <button type="submit" class="btn">Upload Event</button>
+           <a href="{{ url_for('dashboard') }}" class="btn btn-cancel">Cancel</a>
+        </form>
+    </div>
+</body>
+</html>

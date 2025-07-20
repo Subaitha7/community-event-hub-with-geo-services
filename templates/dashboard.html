@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | Community Event Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- --- NEW: Leaflet CSS --- -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+</head>
+<body>
+    <div class="dashboard-header">
+    <div class="dashboard-header-left">
+        <div class="welcome-msg">Welcome, {{ username }}!</div>
+        <div class="role-msg">
+            You are logged in as <strong>{{ 'Organizer' if is_organizer else 'User' }}</strong>.
+        </div>
+    </div>
+    <div class="dashboard-header-right">
+        <a href="{{ url_for('profile') }}" class="btn">Profile</a>
+        {% if is_organizer %}
+            <a href="{{ url_for('upload_event_page') }}" class="btn">Upload Event</a>
+        {% endif %}
+        <a href="{{ url_for('logout') }}" class="btn">Logout</a>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="dashboard-content-left">
+        <div class="filter-bar">
+            <!-- --- UPDATED: Added distance filter --- -->
+                <form method="GET" action="{{ url_for('dashboard') }}" style="display:flex; flex-wrap: wrap; width:100%; gap:1rem;">
+                    <input type="text" name="location" placeholder="Location" value="{{ request.args.get('location', '') }}">
+                    <input type="number" name="distance_km" placeholder="Distance (km)" value="{{ request.args.get('distance_km', '') }}">
+                    <input type="date" name="date" value="{{ request.args.get('date', '') }}">
+                    <input type="text" name="keyword" placeholder="Keyword" value="{{ request.args.get('keyword', '') }}">
+                    <button type="submit" class="btn">Filter</button>
+                </form>
+        </div>
+        <div class="event-list">
+            {% for event in events %}
+            <div class="event-card">
+                <img src="{{ url_for('static', filename=event.icon or 'images/default-event.png') }}" class="event-icon" alt="icon">
+                <div class="event-details">
+                    <!-- Add the "event-title-clickable" class here -->
+                    <div class="event-title event-title-clickable">{{ event.name }}</div>
+                    <div class="event-meta">
+                        {{ event.location }} | {{ event.date }} | {{ event.keywords }}
+                    </div>
+                    <div>{{ event.description }}</div>
+
+                    <!-- ADD THIS HIDDEN DIV FOR THE DETAILED DESCRIPTION -->
+                    <div class="event-detailed-description" style="display: none;">
+                    <hr style="margin: 10px 0;">
+                    <p><strong>Event Details:</strong></p> 
+                    <p class="detailed-text">{{ event.detailed_description | safe if event.detailed_description else 'No detailed description provided.' }}</p>
+                    </div>
+                </div>
+                <div class="event-actions">
+                        {% if event.organizer_id != user_id %}
+                            {% if event.id in attended_event_ids %}
+                                <button class="btn-attended" disabled>Attending</button>
+                            {% else %}
+                                <form action="{{ url_for('attend', event_id=event.id) }}" method="POST">
+                                    <button type="submit" class="btn attend-btn">Attend</button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <p>No events found.</p>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="dashboard-content-right">
+        <div class="geo-services">
+            <h3>Event Map</h3>
+            <div id="map"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+    
+        // --- MAP LOGIC ---
+        const eventsData = JSON.parse('{{ events_for_map|safe }}');
+        let mapCenter = [20, 0];
+        let zoomLevel = 2;
+        if (eventsData.length > 0) {
+            let avgLat = eventsData.reduce((sum, event) => sum + event.lat, 0) / eventsData.length;
+            let avgLon = eventsData.reduce((sum, event) => sum + event.lon, 0) / eventsData.length;
+            mapCenter = [avgLat, avgLon];
+            zoomLevel = 5;
+        }
+        const map = L.map('map').setView(mapCenter, zoomLevel);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+        eventsData.forEach(event => {
+            if (event.lat && event.lon) {
+                const marker = L.marker([event.lat, event.lon]).addTo(map);
+                const popupContent = `
+                    <div style="font-family: sans-serif; line-height: 1.5;">
+                        <img src="${event.icon}" width="60" style="margin-bottom:8px; border-radius: 4px;">
+                        <h3 style="margin: 0 0 5px 0;">${event.name}</h3>
+                        <p style="margin: 0 0 5px 0;">${event.description}</p>
+                        <a href="https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lon}" target="_blank" rel="noopener noreferrer" style="color: #0078A8; text-decoration: none; font-weight: bold;">
+                            Get Directions &rarr;
+                        </a>
+                    </div>
+                `;
+                marker.bindPopup(popupContent);
+            }
+        });
+
+        // --- ACCORDION LOGIC ---
+        const eventTitles = document.querySelectorAll('.event-title-clickable');
+        eventTitles.forEach(title => {
+            title.addEventListener('click', function() {
+                const detailsDiv = this.parentElement.querySelector('.event-detailed-description');
+                if (detailsDiv) {
+                    detailsDiv.style.display = (detailsDiv.style.display === 'none') ? 'block' : 'none';
+                }
+            });
+        });
+
+    });
+</script>
+
+</body>
+</html>
