@@ -1,29 +1,92 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Upload Event | Community Event Hub</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <div class="upload-form-wrapper">
-        <form class="upload-form" method="POST" enctype="multipart/form-data" action="{{ url_for('upload_event') }}">
-           <h2>Upload New Event</h2>
-           <input type="text" name="name" placeholder="Event Name" required>
-           <input type="text" name="location" placeholder="Location" required>
-           <input type="date" name="date" required>
-           <textarea name="description" placeholder="Short Description" required></textarea>
-           <textarea name="detailed_description" placeholder="Detailed Event Information (e.g., schedule, what to bring, contact info)" rows="6"></textarea>
-           <input type="text" name="keywords" placeholder="Keywords (comma-separated)" required>
-           <label for="icon-upload" class="file-label">
-              <span class="file-label-icon">&#128247;</span>
-              <span class="file-label-text">Event Icon / Logo (PNG, JPG, etc.)</span>
-           </label>
-           <input id="icon-upload" type="file" name="icon" accept="image/*" style="display:none;">
-           <button type="submit" class="btn">Upload Event</button>
-           <a href="{{ url_for('dashboard') }}" class="btn btn-cancel">Cancel</a>
-        </form>
-    </div>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Upload Event | Community Event Hub{% endblock %}
+
+{% block body %}
+<div class="upload-form-wrapper">
+    <form class="upload-form" method="POST" enctype="multipart/form-data" action="{{ url_for('upload_event') }}">
+        <h2>Upload New Event</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <input type="text" name="name" placeholder="Event Name" required>
+        <input type="text" name="location" placeholder="Location (e.g. Chennai, India)" required>
+        <input type="date" name="date" required>
+        <textarea name="description" placeholder="Short Description (shown on event card)" required></textarea>
+        <textarea name="detailed_description" placeholder="Detailed Event Information (schedule, what to bring, contact info)" rows="6"></textarea>
+        <input type="text" name="keywords" placeholder="Keywords (comma-separated)" required>
+        <label for="icon-upload" class="file-label" id="icon-label">
+           <span class="file-label-icon" id="file-label-icon">📷</span>
+           <span class="file-label-text" id="file-label-text">Event Icon / Logo (PNG, JPG, GIF, WEBP)</span>
+        </label>
+        <input id="icon-upload" type="file" name="icon" accept=".png,.jpg,.jpeg,.gif,.webp" style="display:none;">
+
+        <!-- Image preview shown after file is selected -->
+        <div id="icon-preview-wrapper" style="display:none; margin-bottom: 0.5rem; text-align:center;">
+            <img id="icon-preview-img" src="" alt="Preview"
+                 style="max-height:120px; max-width:100%; border-radius:10px; border:2px solid #00b894; object-fit:cover; box-shadow:0 2px 8px rgba(0,0,0,0.12);">
+            <div id="icon-preview-name"
+                 style="margin-top:0.4rem; font-size:0.85rem; color:#00b894; font-weight:600;"></div>
+            <button type="button" id="icon-remove-btn"
+                    style="margin-top:0.3rem; background:none; border:none; color:#e74c3c; cursor:pointer; font-size:0.85rem; text-decoration:underline;">
+                ✕ Remove image
+            </button>
+        </div>
+
+        <button type="submit" class="btn">Upload Event</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-cancel">Cancel</a>
+    </form>
+</div>
+
+<script>
+(function () {
+    const input       = document.getElementById('icon-upload');
+    const label       = document.getElementById('icon-label');
+    const labelIcon   = document.getElementById('file-label-icon');
+    const labelText   = document.getElementById('file-label-text');
+    const previewWrap = document.getElementById('icon-preview-wrapper');
+    const previewImg  = document.getElementById('icon-preview-img');
+    const previewName = document.getElementById('icon-preview-name');
+    const removeBtn   = document.getElementById('icon-remove-btn');
+
+    input.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            previewImg.src = e.target.result;
+            previewName.textContent = `✅ ${file.name}  (${(file.size / 1024).toFixed(1)} KB)`;
+            previewWrap.style.display = 'block';
+
+            // Update the label to show uploaded state
+            label.style.background = '#e8faf5';
+            label.style.borderColor = '#00b894';
+            label.style.color = '#00b894';
+            labelIcon.textContent = '✅';
+            labelText.textContent = 'Image selected — click to change';
+        };
+        reader.readAsDataURL(file);
+    });
+
+    removeBtn.addEventListener('click', function () {
+        input.value = '';
+        previewImg.src = '';
+        previewName.textContent = '';
+        previewWrap.style.display = 'none';
+
+        label.style.background = '';
+        label.style.borderColor = '';
+        label.style.color = '';
+        labelIcon.textContent = '📷';
+        labelText.textContent = 'Event Icon / Logo (PNG, JPG, GIF, WEBP)';
+    });
+})();
+</script>
+{% endblock %}

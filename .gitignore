@@ -63,3 +63,10 @@ instance/
 # Database files
 *.sqlite3
 users.db
+
+app_backup.py
+static_backup/
+templates_backup/
+project_fixed/
+static/static/
+*.zip

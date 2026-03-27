@@ -1,21 +1,94 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Dashboard | Community Event Hub</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- --- NEW: Leaflet CSS --- -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+{% extends "base.html" %}
+
+{% block title %}Dashboard | Community Event Hub{% endblock %}
+
+{% block preload %}
+<link rel="preload" as="image" href="{{ url_for('static', filename='images/dashboard-bg.jpg') }}">
+{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
      crossorigin=""/>
-</head>
-<body>
-    <div class="dashboard-header">
+<style>
+    /* Map panel and event card highlight */
+    #map { height: 400px; width: 100%; border-radius: 10px; }
+
+    .map-info-panel {
+        display: none;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+        padding: 1rem 1.2rem;
+        margin-top: 0.8rem;
+        animation: fadeIn 0.2s ease;
+    }
+    .map-info-panel.visible { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .map-info-panel .panel-event-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2d3436;
+        margin-bottom: 0.3rem;
+    }
+    .map-info-panel .panel-event-meta {
+        font-size: 0.88rem;
+        color: #888;
+        margin-bottom: 0.5rem;
+    }
+    .map-info-panel .panel-event-desc {
+        font-size: 0.95rem;
+        color: #555;
+        margin-bottom: 0.8rem;
+        line-height: 1.5;
+    }
+    .map-info-panel .panel-directions-btn {
+        display: inline-block;
+        background: #00b894;
+        color: #fff;
+        padding: 0.5rem 1.2rem;
+        border-radius: 20px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+    .map-info-panel .panel-directions-btn:hover { background: #00997a; }
+
+    .panel-close-btn {
+        float: right;
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: #aaa;
+        margin-top: -2px;
+    }
+    .panel-close-btn:hover { color: #e74c3c; }
+
+    .event-card.map-highlighted {
+        border: 2px solid #00b894;
+        box-shadow: 0 0 0 3px rgba(0,184,148,0.15);
+        transition: border 0.2s, box-shadow 0.2s;
+    }
+
+    .map-pin-count {
+        font-size: 0.8rem;
+        color: #888;
+        margin-bottom: 0.4rem;
+        text-align: right;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="dashboard-header">
     <div class="dashboard-header-left">
         <div class="welcome-msg">Welcome, {{ username }}!</div>
         <div class="role-msg">
-            You are logged in as <strong>{{ 'Organizer' if is_organizer else 'User' }}</strong>.
+            Logged in as <strong>{{ 'Organizer' if is_organizer else 'Attendee' }}</strong>
         </div>
     </div>
     <div class="dashboard-header-right">
@@ -27,58 +100,87 @@
     </div>
 </div>
 
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div style="padding: 0 2rem;">
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
 <div class="main-content">
     <div class="dashboard-content-left">
         <div class="filter-bar">
-            <!-- --- UPDATED: Added distance filter --- -->
-                <form method="GET" action="{{ url_for('dashboard') }}" style="display:flex; flex-wrap: wrap; width:100%; gap:1rem;">
-                    <input type="text" name="location" placeholder="Location" value="{{ request.args.get('location', '') }}">
-                    <input type="number" name="distance_km" placeholder="Distance (km)" value="{{ request.args.get('distance_km', '') }}">
-                    <input type="date" name="date" value="{{ request.args.get('date', '') }}">
-                    <input type="text" name="keyword" placeholder="Keyword" value="{{ request.args.get('keyword', '') }}">
-                    <button type="submit" class="btn">Filter</button>
-                </form>
+            <form method="GET" action="{{ url_for('dashboard') }}" style="display:flex; flex-wrap: wrap; width:100%; gap:1rem;">
+                <input type="text" name="location" placeholder="Location" value="{{ request.args.get('location', '') }}">
+                <input type="number" name="distance_km" placeholder="Distance (km)" value="{{ request.args.get('distance_km', '') }}">
+                <input type="date" name="date" value="{{ request.args.get('date', '') }}">
+                <input type="text" name="keyword" placeholder="Keyword" value="{{ request.args.get('keyword', '') }}">
+                <button type="submit" class="btn">Filter</button>
+                {% if request.args %}
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-cancel" style="padding:0.8rem 1.5rem;">Clear</a>
+                {% endif %}
+            </form>
         </div>
+
         <div class="event-list">
             {% for event in events %}
-            <div class="event-card">
-                <img src="{{ url_for('static', filename=event.icon or 'images/default-event.png') }}" class="event-icon" alt="icon">
+            <div class="event-card" id="event-card-{{ event.id }}">
+                <img src="{{ url_for('static', filename=event.icon or 'images/default-event.jpg') }}" class="event-icon" alt="icon">
                 <div class="event-details">
-                    <!-- Add the "event-title-clickable" class here -->
                     <div class="event-title event-title-clickable">{{ event.name }}</div>
                     <div class="event-meta">
-                        {{ event.location }} | {{ event.date }} | {{ event.keywords }}
+                        📍 {{ event.location }} &nbsp;|&nbsp; 📅 {{ event.date.strftime('%d %b %Y') }} &nbsp;|&nbsp; 🏷 {{ event.keywords }}
                     </div>
                     <div>{{ event.description }}</div>
-
-                    <!-- ADD THIS HIDDEN DIV FOR THE DETAILED DESCRIPTION -->
+                    {% if event.detailed_description %}
                     <div class="event-detailed-description" style="display: none;">
-                    <hr style="margin: 10px 0;">
-                    <p><strong>Event Details:</strong></p> 
-                    <p class="detailed-text">{{ event.detailed_description | safe if event.detailed_description else 'No detailed description provided.' }}</p>
+                        <hr style="margin: 10px 0;">
+                        <p><strong>Event Details:</strong></p>
+                        <p class="detailed-text">{{ event.detailed_description }}</p>
                     </div>
+                    {% endif %}
                 </div>
                 <div class="event-actions">
-                        {% if event.organizer_id != user_id %}
-                            {% if event.id in attended_event_ids %}
-                                <button class="btn-attended" disabled>Attending</button>
-                            {% else %}
-                                <form action="{{ url_for('attend', event_id=event.id) }}" method="POST">
-                                    <button type="submit" class="btn attend-btn">Attend</button>
-                                </form>
-                            {% endif %}
+                    {% if event.organizer_id != user_id %}
+                        {% if event.id in attended_event_ids %}
+                            <form action="{{ url_for('unattend', event_id=event.id) }}" method="POST">
+                                <button type="submit" class="btn-attended btn-unattend">✓ Attending<br><small>Cancel?</small></button>
+                            </form>
+                        {% else %}
+                            <form action="{{ url_for('attend', event_id=event.id) }}" method="POST">
+                                <button type="submit" class="btn attend-btn">Attend</button>
+                            </form>
                         {% endif %}
+                    {% else %}
+                        <span class="organizer-badge">Your Event</span>
+                    {% endif %}
                 </div>
             </div>
             {% else %}
-            <p>No events found.</p>
+            <p style="color:#fff; text-shadow: 0 1px 4px rgba(0,0,0,0.5);">No upcoming events found. Try adjusting your filters.</p>
             {% endfor %}
         </div>
     </div>
+
     <div class="dashboard-content-right">
         <div class="geo-services">
-            <h3>Event Map</h3>
+            <h3 style="margin-top:0;">📍 Event Map</h3>
+            <div class="map-pin-count" id="map-pin-count"></div>
             <div id="map"></div>
+
+            {# Info panel appears below the map when a pin is clicked #}
+            <div class="map-info-panel" id="map-info-panel">
+                <button class="panel-close-btn" id="panel-close-btn" title="Close">✕</button>
+                <div class="panel-event-name" id="panel-event-name"></div>
+                <div class="panel-event-meta" id="panel-event-meta"></div>
+                <div class="panel-event-desc" id="panel-event-desc"></div>
+                <a href="#" class="panel-directions-btn" id="panel-directions-btn" target="_blank" rel="noopener noreferrer">
+                    🗺 Get Directions in Google Maps
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -87,54 +189,166 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""></script>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-    
-        // --- MAP LOGIC ---
-        const eventsData = JSON.parse('{{ events_for_map|safe }}');
-        let mapCenter = [20, 0];
-        let zoomLevel = 2;
-        if (eventsData.length > 0) {
-            let avgLat = eventsData.reduce((sum, event) => sum + event.lat, 0) / eventsData.length;
-            let avgLon = eventsData.reduce((sum, event) => sum + event.lon, 0) / eventsData.length;
-            mapCenter = [avgLat, avgLon];
-            zoomLevel = 5;
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // ── MAP SETUP ──────────────────────────────────────────────────────────
+    const eventsData = {{ events_for_map|safe }};
+
+    let mapCenter = [20.5937, 78.9629]; // Default: India
+    let zoomLevel = 5;
+
+    if (eventsData.length > 0) {
+        const avgLat = eventsData.reduce((s, e) => s + e.lat, 0) / eventsData.length;
+        const avgLon = eventsData.reduce((s, e) => s + e.lon, 0) / eventsData.length;
+        mapCenter = [avgLat, avgLon];
+        zoomLevel = eventsData.length === 1 ? 12 : 6;
+    }
+
+    const map = L.map('map').setView(mapCenter, zoomLevel);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+
+    // Update pin count label
+    const pinCountEl = document.getElementById('map-pin-count');
+    if (pinCountEl) {
+        pinCountEl.textContent = eventsData.length > 0
+            ? `${eventsData.length} event${eventsData.length > 1 ? 's' : ''} on map`
+            : 'No events with map data';
+    }
+
+    // ── INFO PANEL ────────────────────────────────────────────────────────
+    const panel = document.getElementById('map-info-panel');
+    const panelName = document.getElementById('panel-event-name');
+    const panelMeta = document.getElementById('panel-event-meta');
+    const panelDesc = document.getElementById('panel-event-desc');
+    const panelDir  = document.getElementById('panel-directions-btn');
+    const panelClose = document.getElementById('panel-close-btn');
+
+    let lastHighlighted = null;
+
+    function showPanel(event) {
+        panelName.textContent = event.name;
+        panelMeta.textContent = `📍 ${event.location}  |  📅 ${event.date}`;
+        panelDesc.textContent = event.description;
+
+        // FIX: Correct Google Maps directions URL with properly encoded destination
+        // Uses lat,lon as destination so it always works regardless of address format
+        const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lon}&travelmode=driving`;
+        panelDir.href = mapsUrl;
+
+        panel.classList.add('visible');
+
+        // Scroll panel into view on mobile
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // Highlight the matching event card in the list
+        if (lastHighlighted) {
+            lastHighlighted.classList.remove('map-highlighted');
         }
-        const map = L.map('map').setView(mapCenter, zoomLevel);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        const card = document.getElementById(`event-card-${event.id}`);
+        if (card) {
+            card.classList.add('map-highlighted');
+            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            lastHighlighted = card;
+        }
+    }
+
+    function hidePanel() {
+        panel.classList.remove('visible');
+        if (lastHighlighted) {
+            lastHighlighted.classList.remove('map-highlighted');
+            lastHighlighted = null;
+        }
+    }
+
+    panelClose.addEventListener('click', hidePanel);
+
+    // ── MARKERS ───────────────────────────────────────────────────────────
+    // Custom numbered icon so users can see which pin is which at a glance
+    function makeIcon(number, attending) {
+        const color = attending ? '#00b894' : '#5e72e4';
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="42" viewBox="0 0 32 42">
+                <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 26 16 26S32 26 32 16C32 7.163 24.837 0 16 0z"
+                      fill="${color}" stroke="#fff" stroke-width="2"/>
+                <circle cx="16" cy="16" r="9" fill="#fff"/>
+                <text x="16" y="21" text-anchor="middle" font-size="11" font-family="Arial" font-weight="bold" fill="${color}">${number}</text>
+            </svg>`;
+        return L.divIcon({
+            html: svg,
+            iconSize: [32, 42],
+            iconAnchor: [16, 42],
+            popupAnchor: [0, -42],
+            className: ''
+        });
+    }
+
+    // ── ACCORDION FOR EVENT LIST — also focuses map pin ─────────────────
+    // Build a lookup: event DB id → marker object
+    const markerByEventId = {};
+    eventsData.forEach((event, idx) => {
+        // markers array is built below; store ref after creation
+    });
+
+    // Re-declare markers so they're accessible here
+    const markerObjects = {};    // id → L.marker
+
+    eventsData.forEach((event, idx) => {
+        const marker = L.marker([event.lat, event.lon], {
+            icon: makeIcon(idx + 1, event.attending),
+            title: event.name
         }).addTo(map);
-        eventsData.forEach(event => {
-            if (event.lat && event.lon) {
-                const marker = L.marker([event.lat, event.lon]).addTo(map);
-                const popupContent = `
-                    <div style="font-family: sans-serif; line-height: 1.5;">
-                        <img src="${event.icon}" width="60" style="margin-bottom:8px; border-radius: 4px;">
-                        <h3 style="margin: 0 0 5px 0;">${event.name}</h3>
-                        <p style="margin: 0 0 5px 0;">${event.description}</p>
-                        <a href="https://www.google.com/maps/dir/?api=1&destination=${event.lat},${event.lon}" target="_blank" rel="noopener noreferrer" style="color: #0078A8; text-decoration: none; font-weight: bold;">
-                            Get Directions &rarr;
-                        </a>
-                    </div>
-                `;
-                marker.bindPopup(popupContent);
+
+        markerObjects[event.id] = marker;
+
+        marker.on('click', function () {
+            showPanel(event);
+            map.setView([event.lat, event.lon], Math.max(map.getZoom(), 10), { animate: true });
+        });
+    });
+
+    document.querySelectorAll('.event-title-clickable').forEach(title => {
+        title.addEventListener('click', function () {
+            const card    = this.closest('.event-card');
+            const details = card.querySelector('.event-detailed-description');
+            const eventId = parseInt(card.id.replace('event-card-', ''), 10);
+
+            // Toggle detailed description
+            if (details) {
+                details.style.display =
+                    (details.style.display === 'none' || !details.style.display) ? 'block' : 'none';
+            }
+
+            // Find matching event data and focus map
+            const eventData = eventsData.find(e => e.id === eventId);
+            if (eventData) {
+                // Pan & zoom the map to this event
+                map.setView([eventData.lat, eventData.lon],
+                            Math.max(map.getZoom(), 12),
+                            { animate: true });
+
+                // Show the info panel (same as clicking the pin)
+                showPanel(eventData);
+
+                // Bounce the marker briefly to draw attention
+                const marker = markerObjects[eventId];
+                if (marker) {
+                    const el = marker.getElement();
+                    if (el) {
+                        el.style.transition = 'transform 0.15s';
+                        el.style.transform = 'scale(1.4)';
+                        setTimeout(() => { el.style.transform = 'scale(1)'; }, 300);
+                    }
+                }
             }
         });
-
-        // --- ACCORDION LOGIC ---
-        const eventTitles = document.querySelectorAll('.event-title-clickable');
-        eventTitles.forEach(title => {
-            title.addEventListener('click', function() {
-                const detailsDiv = this.parentElement.querySelector('.event-detailed-description');
-                if (detailsDiv) {
-                    detailsDiv.style.display = (detailsDiv.style.display === 'none') ? 'block' : 'none';
-                }
-            });
-        });
-
     });
+
+});
 </script>
 
-</body>
-</html>
+{% endblock %}

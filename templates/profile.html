@@ -1,60 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Profile | Community Event Hub</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-    <div class="top-bar">
-        <a href="{{ url_for('dashboard') }}" class="btn">Back to Dashboard</a>
-        <a href="{{ url_for('logout') }}" class="btn logout-btn">Logout</a>
-    </div>
+{% extends "base.html" %}
 
-    <div class="profile-content">
-        <h1>Profile</h1>
-        <p><strong>Username:</strong> {{ username }}</p>
+{% block title %}Profile | Community Event Hub{% endblock %}
 
-        <!-- --- NEW: Section for events user is attending --- -->
-        <div class="profile-section">
-            <h2>Events I'm Attending</h2>
-            {% if attending_events %}
-                <ul class="event-list-profile">
-                {% for event in attending_events %}
-                    <li>{{ event.name }} - {{ event.date }} at {{ event.location }}</li>
-                {% endfor %}
-                </ul>
-            {% else %}
-                <p>You are not attending any events yet.</p>
-            {% endif %}
-        </div>
+{% block body %}
+<div class="top-bar">
+    <a href="{{ url_for('dashboard') }}" class="btn">← Back to Dashboard</a>
+    <a href="{{ url_for('logout') }}" class="btn logout-btn">Logout</a>
+</div>
 
-        <!-- --- NEW: Section for organizers --- -->
-        {% if is_organizer %}
-        <div class="profile-section">
-            <h2>My Uploaded Events & Attendees</h2>
-            {% if my_events_with_attendees %}
-                {% for event in my_events_with_attendees %}
-                <div class="organized-event-card">
-                    <h3>{{ event.name }}</h3>
-                    <p><strong>Attendees ({{ event.attendees|length }}):</strong></p>
-                    {% if event.attendees %}
-                        <ul class="attendee-list">
-                        {% for attendee in event.attendees %}
-                            <li>{{ attendee.username }}</li>
-                        {% endfor %}
-                        </ul>
-                    {% else %}
-                        <p>No one has signed up to attend yet.</p>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            {% else %}
-                <p>You have not uploaded any events.</p>
-            {% endif %}
-        </div>
+<div class="profile-content">
+    <h1>Profile</h1>
+    <p><strong>Username:</strong> {{ username }}</p>
+    <p><strong>Role:</strong> {{ 'Organizer' if is_organizer else 'Attendee' }}</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="profile-section">
+        <h2>Events I'm Attending</h2>
+        {% if attending_events %}
+            <ul class="event-list-profile">
+            {% for event in attending_events %}
+                <li>
+                    <strong>{{ event.name }}</strong> — {{ event.date.strftime('%d %b %Y') }} at {{ event.location }}
+                    <form action="{{ url_for('unattend', event_id=event.id) }}" method="POST" style="display:inline; margin-left:1rem;">
+                        <button type="submit" class="btn btn-cancel-rsvp">Cancel RSVP</button>
+                    </form>
+                </li>
+            {% endfor %}
+            </ul>
+        {% else %}
+            <p>You are not attending any events yet.</p>
         {% endif %}
     </div>
-</body>
-</html>
 
+    {% if is_organizer %}
+    <div class="profile-section">
+        <h2>My Uploaded Events & Attendees</h2>
+        {% if my_events_with_attendees %}
+            {% for event in my_events_with_attendees %}
+            <div class="organized-event-card">
+                <h3>{{ event.name }} <span style="font-size:0.9rem; color:#888;">— {{ event.date.strftime('%d %b %Y') }}</span></h3>
+                <p><strong>Attendees ({{ event.attendees|length }}):</strong></p>
+                {% if event.attendees %}
+                    <ul class="attendee-list">
+                    {% for attendee in event.attendees %}
+                        <li>{{ attendee.username }}</li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No one has signed up to attend yet.</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>You have not uploaded any events.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
