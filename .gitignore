@@ -70,3 +70,5 @@ templates_backup/
 project_fixed/
 static/static/
 *.zip
+
+static/uploads/
