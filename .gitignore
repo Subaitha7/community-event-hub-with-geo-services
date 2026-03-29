@@ -68,6 +68,7 @@ app_backup.py
 static_backup/
 templates_backup/
 project_fixed/
+upgrade_01/
 static/static/
 *.zip
 
