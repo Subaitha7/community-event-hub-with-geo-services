@@ -337,6 +337,22 @@ def upload_event():
 
     return redirect(url_for('dashboard'))
 
+@app.route('/event/<int:event_id>')
+def event_detail(event_id):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+    event = db.session.get(Event, event_id)
+    if not event:
+        flash('Event not found.', 'danger')
+        return redirect(url_for('dashboard'))
+    user = db.session.get(User, session['user_id'])
+    is_attending = event in user.attended_events
+    is_organizer_of_event = event.organizer_id == session['user_id']
+    return render_template('event_detail.html',
+                           event=event,
+                           is_attending=is_attending,
+                           is_organizer_of_event=is_organizer_of_event)
+
 @app.route('/logout')
 def logout():
     session.clear()

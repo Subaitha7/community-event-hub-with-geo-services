@@ -621,3 +621,23 @@ body {
     box-shadow: 0 1px 6px rgba(0,0,0,0.07);
     margin-bottom: 0;
 }
+
+/* Upgrade 04: Event detail page */
+.event-title-link {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #2d3436;
+    text-decoration: none;
+    cursor: pointer;
+    display: block;
+    margin-bottom: 0.3rem;
+    transition: color 0.2s;
+}
+.event-title-link:hover { color: #00b894; text-decoration: underline; }
+
+.btn-outline {
+    background: transparent;
+    color: #00b894;
+    border: 2px solid #00b894;
+}
+.btn-outline:hover { background: #00b894; color: #fff; }

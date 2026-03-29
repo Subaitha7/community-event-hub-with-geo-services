@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.name }} | Community Event Hub{% endblock %}
+
+{% block head_extra %}
+<style>
+    .event-detail-wrapper {
+        max-width: 860px;
+        margin: 2.5rem auto;
+        padding: 0 1.5rem;
+    }
+    .event-detail-card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+        overflow: hidden;
+    }
+    .event-detail-banner {
+        width: 100%;
+        height: 280px;
+        object-fit: cover;
+        display: block;
+    }
+    .event-detail-body {
+        padding: 2rem 2.5rem;
+    }
+    .event-detail-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #2d3436;
+        margin: 0 0 0.5rem 0;
+    }
+    .event-detail-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        color: #636e72;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+    .event-detail-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+    .event-detail-description {
+        font-size: 1rem;
+        color: #444;
+        line-height: 1.7;
+        margin-bottom: 1.5rem;
+    }
+    .event-detail-detailed {
+        background: #f8f9fa;
+        border-left: 4px solid #00b894;
+        border-radius: 0 8px 8px 0;
+        padding: 1.2rem 1.5rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.97rem;
+        color: #555;
+        line-height: 1.7;
+    }
+    .event-detail-keywords {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .keyword-tag {
+        background: #e8faf5;
+        color: #00b894;
+        border: 1px solid #00b894;
+        border-radius: 20px;
+        padding: 0.25rem 0.8rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .event-detail-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        align-items: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid #eee;
+    }
+    .organizer-info {
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        color: #888;
+    }
+    .back-nav {
+        margin-bottom: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="event-detail-wrapper">
+    <div class="back-nav">
+        <a href="{{ url_for('dashboard') }}" class="btn">← Back to Dashboard</a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="event-detail-card">
+        <img src="{{ url_for('static', filename=event.icon or 'images/default-event.jpg') }}"
+             class="event-detail-banner" alt="{{ event.name }}">
+
+        <div class="event-detail-body">
+            <h1 class="event-detail-title">{{ event.name }}</h1>
+
+            <div class="event-detail-meta">
+                <span>📍 {{ event.location }}</span>
+                <span>📅 {{ event.date.strftime('%d %B %Y') }}</span>
+                <span>👥 {{ event.attendees|length }} attending</span>
+            </div>
+
+            <div class="organizer-info">
+                Organised by <strong>{{ event.organizer.username }}</strong>
+            </div>
+
+            <div class="event-detail-description">
+                {{ event.description }}
+            </div>
+
+            {% if event.detailed_description %}
+            <div class="event-detail-detailed">
+                <strong>📋 Event Details</strong><br><br>
+                {{ event.detailed_description }}
+            </div>
+            {% endif %}
+
+            {% if event.keywords %}
+            <div class="event-detail-keywords">
+                {% for kw in event.keywords.split(',') %}
+                    <span class="keyword-tag">{{ kw.strip() }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="event-detail-actions">
+                {% if is_organizer_of_event %}
+                    <span class="organizer-badge">Your Event</span>
+                {% elif is_attending %}
+                    <form action="{{ url_for('unattend', event_id=event.id) }}" method="POST">
+                        <button type="submit" class="btn btn-cancel">Cancel RSVP</button>
+                    </form>
+                    <span style="color:#00b894; font-weight:600;">✓ You are attending this event</span>
+                {% else %}
+                    <form action="{{ url_for('attend', event_id=event.id) }}" method="POST">
+                        <button type="submit" class="btn">Attend This Event</button>
+                    </form>
+                {% endif %}
+
+                {% if event.latitude and event.longitude %}
+                <a href="https://www.google.com/maps/dir/?api=1&destination={{ event.latitude }},{{ event.longitude }}&travelmode=driving"
+                   target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+                    🗺 Get Directions
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -130,7 +130,7 @@
             <div class="event-card" id="event-card-{{ event.id }}">
                 <img src="{{ url_for('static', filename=event.icon or 'images/default-event.jpg') }}" class="event-icon" alt="icon">
                 <div class="event-details">
-                    <div class="event-title event-title-clickable">{{ event.name }}</div>
+                    <a href="{{ url_for('event_detail', event_id=event.id) }}" class="event-title event-title-link">{{ event.name }}</a>
                     <div class="event-meta">
                         📍 {{ event.location }} &nbsp;|&nbsp; 📅 {{ event.date.strftime('%d %b %Y') }} &nbsp;|&nbsp; 🏷 {{ event.keywords }}
                     </div>
