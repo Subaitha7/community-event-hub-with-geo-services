@@ -189,6 +189,7 @@ def dashboard():
     location = request.args.get('location')
     date_filter = request.args.get('date')
     keyword = request.args.get('keyword')
+    search = request.args.get('search', '').strip()
     distance_km = request.args.get('distance_km', type=int)
 
     query = Event.query
@@ -207,6 +208,8 @@ def dashboard():
             flash('Invalid date format in filter.', 'warning')
     if keyword:
         query = query.filter(Event.keywords.ilike(f"%{keyword}%"))
+    if search:
+        query = query.filter(Event.name.ilike(f"%{search}%"))
 
     PER_PAGE = 8
     page = request.args.get('page', 1, type=int)
@@ -250,7 +253,8 @@ def dashboard():
                            attended_event_ids=attended_event_ids,
                            user_id=session['user_id'],
                            events_for_map=json.dumps(events_for_map),
-                           pagination=pagination)
+                           pagination=pagination,
+                           search=search)
 
 @app.route('/attend/<int:event_id>', methods=['POST'])
 def attend(event_id):

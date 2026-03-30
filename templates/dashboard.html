@@ -149,6 +149,7 @@
     <div class="dashboard-content-left">
         <div class="filter-bar">
             <form method="GET" action="{{ url_for('dashboard') }}" style="display:flex; flex-wrap: wrap; width:100%; gap:1rem;">
+                <input type="text" name="search" placeholder="🔍 Search by event name" value="{{ search }}" style="flex:1.5; min-width:180px;">
                 <input type="text" name="location" placeholder="Location" value="{{ request.args.get('location', '') }}">
                 <input type="number" name="distance_km" placeholder="Distance (km)" value="{{ request.args.get('distance_km', '') }}">
                 <input type="date" name="date" value="{{ request.args.get('date', '') }}">
