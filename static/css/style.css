@@ -622,7 +622,7 @@ body {
     margin-bottom: 0;
 }
 
-/* Event detail page */
+/* Upgrade 04: Event detail page */
 .event-title-link {
     font-size: 1rem;
     font-weight: 700;
@@ -642,7 +642,7 @@ body {
 }
 .btn-outline:hover { background: #00b894; color: #fff; }
 
-/* Pagination */
+/* Upgrade 05: Pagination */
 .pagination-bar {
     display: flex;
     justify-content: center;
@@ -656,7 +656,7 @@ body {
     padding: 0.45rem 0.85rem;
     border-radius: 8px;
     background: rgba(255,255,255,0.15);
-    color:#fff;
+    color: #fff;
     text-decoration: none;
     font-weight: 600;
     font-size: 0.9rem;

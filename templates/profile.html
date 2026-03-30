@@ -12,6 +12,7 @@
     <h1>Profile</h1>
     <p><strong>Username:</strong> {{ username }}</p>
     <p><strong>Role:</strong> {{ 'Organizer' if is_organizer else 'Attendee' }}</p>
+    <p><strong>Email:</strong> {{ email if email else '<em>Not provided</em>' }}</p>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}

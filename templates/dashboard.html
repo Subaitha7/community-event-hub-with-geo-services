@@ -80,7 +80,6 @@
         margin-bottom: 0.4rem;
         text-align: right;
     }
-    /* ── Pagination bar ── */
     .pagination-bar {
         display: flex;
         justify-content: center;
@@ -198,8 +197,6 @@
             {% else %}
             <p style="color:#fff; text-shadow: 0 1px 4px rgba(0,0,0,0.5);">No upcoming events found. Try adjusting your filters.</p>
             {% endfor %}
-        </div>
-
         {# ── Pagination bar ── #}
         {% if pagination and pagination.pages > 1 %}
         <div class="pagination-bar">
@@ -238,7 +235,7 @@
             {% endif %}
         </div>
         {% endif %}
-
+        </div>
     </div>
 
     <div class="dashboard-content-right">
