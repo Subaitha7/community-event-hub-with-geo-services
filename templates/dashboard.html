@@ -80,6 +80,42 @@
         margin-bottom: 0.4rem;
         text-align: right;
     }
+    /* ── Pagination bar ── */
+    .pagination-bar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.4rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+    }
+    .page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2rem;
+        height: 2rem;
+        padding: 0 0.55rem;
+        border-radius: 6px;
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.15s;
+    }
+    .page-btn:hover:not(.disabled):not(.ellipsis) {
+        background: rgba(255,255,255,0.35);
+    }
+    .page-btn.active {
+        background: #fff;
+        color: #6c5ce7;
+    }
+    .page-btn.disabled, .page-btn.ellipsis {
+        opacity: 0.45;
+        cursor: default;
+        pointer-events: none;
+    }
 </style>
 {% endblock %}
 
@@ -163,6 +199,46 @@
             <p style="color:#fff; text-shadow: 0 1px 4px rgba(0,0,0,0.5);">No upcoming events found. Try adjusting your filters.</p>
             {% endfor %}
         </div>
+
+        {# ── Pagination bar ── #}
+        {% if pagination and pagination.pages > 1 %}
+        <div class="pagination-bar">
+            {# Build a base URL that keeps all active filters but strips page #}
+            {% set base = request.args.to_dict() %}
+            {% if 'page' in base %}{% set _ = base.pop('page') %}{% endif %}
+
+            {# Previous #}
+            {% if pagination.has_prev %}
+                {% set prev_args = base.copy() %}
+                {% set _ = prev_args.update({'page': pagination.prev_num}) %}
+                <a href="{{ url_for('dashboard', **prev_args) }}" class="page-btn">&#8249;</a>
+            {% else %}
+                <span class="page-btn disabled">&#8249;</span>
+            {% endif %}
+
+            {# Page numbers #}
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                    {% set p_args = base.copy() %}
+                    {% set _ = p_args.update({'page': p}) %}
+                    <a href="{{ url_for('dashboard', **p_args) }}"
+                       class="page-btn {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
+                {% else %}
+                    <span class="page-btn ellipsis">…</span>
+                {% endif %}
+            {% endfor %}
+
+            {# Next #}
+            {% if pagination.has_next %}
+                {% set next_args = base.copy() %}
+                {% set _ = next_args.update({'page': pagination.next_num}) %}
+                <a href="{{ url_for('dashboard', **next_args) }}" class="page-btn">&#8250;</a>
+            {% else %}
+                <span class="page-btn disabled">&#8250;</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
     </div>
 
     <div class="dashboard-content-right">

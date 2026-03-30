@@ -10,14 +10,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# FIX: Secret key from environment variable (never hardcode)
+# Secret key from environment variable (never hardcode)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-fallback-key-change-in-production')
 
 # Configure SQLite database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# FIX: File upload validation
+# File upload validation
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 def allowed_file(filename):
@@ -34,7 +34,7 @@ attendance = db.Table('attendance',
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), nullable=False, unique=True)
-    # FIX: Store hashed password, not plaintext
+    # Store hashed password, not plaintext
     password_hash = db.Column(db.String(256), nullable=False)
     is_organizer = db.Column(db.Boolean, default=False)
     attended_events = db.relationship('Event', secondary=attendance,
@@ -129,7 +129,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
-        # FIX: Use check_password (hash comparison), not plaintext comparison
+        # Use check_password (hash comparison), not plaintext comparison
         if user and user.check_password(password):
             session['user_id'] = user.id
             session['username'] = user.username
@@ -148,7 +148,7 @@ def signup():
         if User.query.filter_by(username=username).first():
             flash('Username already exists', 'warning')
         else:
-            # FIX: Hash the password before storing
+            # Hash the password before storing
             user = User(username=username, is_organizer=is_organizer)
             user.set_password(password)
             db.session.add(user)
@@ -161,7 +161,7 @@ def signup():
 def profile():
     if 'username' not in session:
         return redirect(url_for('login'))
-    # FIX: Use db.session.get() consistently (not deprecated Query.get)
+    # Use db.session.get() consistently (not deprecated Query.get)
     user = db.session.get(User, session['user_id'])
     attending_events = user.attended_events
     my_events_with_attendees = []
@@ -203,7 +203,10 @@ def dashboard():
     if keyword:
         query = query.filter(Event.keywords.ilike(f"%{keyword}%"))
 
-    events = query.order_by(Event.date).all()
+    PER_PAGE = 8
+    page = request.args.get('page', 1, type=int)
+    pagination = query.order_by(Event.date).paginate(page=page, per_page=PER_PAGE, error_out=False)
+    events = pagination.items
 
     if location and distance_km:
         try:
@@ -241,7 +244,8 @@ def dashboard():
                            events=events,
                            attended_event_ids=attended_event_ids,
                            user_id=session['user_id'],
-                           events_for_map=json.dumps(events_for_map))
+                           events_for_map=json.dumps(events_for_map),
+                           pagination=pagination)
 
 @app.route('/attend/<int:event_id>', methods=['POST'])
 def attend(event_id):
@@ -261,7 +265,7 @@ def attend(event_id):
         flash(f'You are now attending {event.name}!', 'success')
     return redirect(url_for('dashboard'))
 
-# FIX: Added unattend route so users can cancel their RSVP
+# Added unattend route so users can cancel their RSVP
 @app.route('/unattend/<int:event_id>', methods=['POST'])
 def unattend(event_id):
     if 'user_id' not in session:
@@ -299,14 +303,14 @@ def upload_event():
     icon_file = request.files.get('icon')
     icon_path = None
 
-    # FIX: Parse date string into a proper date object
+    # Parse date string into a proper date object
     try:
         event_date = date_type.fromisoformat(date_str)
     except ValueError:
         flash('Invalid date format.', 'danger')
         return redirect(url_for('upload_event_page'))
 
-    # FIX: Validate file type before saving
+    # Validate file type before saving
     if icon_file and icon_file.filename != '':
         if not allowed_file(icon_file.filename):
             flash('Invalid file type. Only PNG, JPG, GIF, WEBP allowed.', 'danger')
