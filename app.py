@@ -362,7 +362,6 @@ def event_detail(event_id):
                            is_attending=is_attending,
                            is_organizer_of_event=is_organizer_of_event)
 
-
 @app.route('/logout')
 def logout():
     session.clear()

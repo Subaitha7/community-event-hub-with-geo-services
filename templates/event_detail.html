@@ -125,13 +125,13 @@
             </div>
 
             <div class="event-detail-description">
-                {{ event.description }}
+                {{ event.description | safe }}
             </div>
 
             {% if event.detailed_description %}
             <div class="event-detail-detailed">
                 <strong>📋 Event Details</strong><br><br>
-                {{ event.detailed_description }}
+                {{ event.detailed_description | safe }}
             </div>
             {% endif %}
 
