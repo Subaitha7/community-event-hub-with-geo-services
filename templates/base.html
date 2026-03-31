@@ -5,9 +5,9 @@
     <title>{% block title %}Community Event Hub{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {# Preload the dashboard background image on every page to warm the cache #}
+    <link rel="preload" as="image" href="{{ url_for('static', filename='images/dashboard-bg.jpg') }}">
     {% block head_extra %}{% endblock %}
-
-    {# FIX: Preload background images so they appear before content - eliminates the lag #}
     {% block preload %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
