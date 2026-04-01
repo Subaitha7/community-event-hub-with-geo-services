@@ -10,14 +10,20 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 
-# FIX: Secret key from environment variable (never hardcode)
+# Secret key from environment variable (set this in Render dashboard)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-fallback-key-change-in-production')
 
-# Configure SQLite database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+# --- Database ---
+# On Render, DATABASE_URL is set automatically by the PostgreSQL add-on.
+# Render provides "postgres://" URLs but SQLAlchemy 1.4+ requires "postgresql://"
+database_url = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# FIX: File upload validation
+# --- File upload validation ---
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 def allowed_file(filename):
@@ -34,7 +40,6 @@ attendance = db.Table('attendance',
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), nullable=False, unique=True)
-    # FIX: Store hashed password, not plaintext
     password_hash = db.Column(db.String(256), nullable=False)
     email = db.Column(db.String(254), nullable=True, unique=True)
     is_organizer = db.Column(db.Boolean, default=False)
@@ -52,7 +57,6 @@ class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
     location = db.Column(db.String(200), nullable=False)
-    # FIX: Use db.Date instead of String for proper date handling
     date = db.Column(db.Date, nullable=False)
     description = db.Column(db.Text, nullable=False)
     detailed_description = db.Column(db.Text, nullable=True)
@@ -67,7 +71,7 @@ with app.app_context():
     db.create_all()
 
 def haversine(lat1, lon1, lat2, lon2):
-    R = 6371  # Radius of Earth in kilometres
+    R = 6371
     dLat = math.radians(lat2 - lat1)
     dLon = math.radians(lon2 - lon1)
     a = math.sin(dLat/2)**2 + math.cos(math.radians(lat1)) \
@@ -77,15 +81,8 @@ def haversine(lat1, lon1, lat2, lon2):
 
 
 def geocode_location(location_str):
-    """
-    Try multiple free geocoding strategies in order:
-    1. Nominatim (OpenStreetMap) — good for cities, addresses
-    2. Photon (Komoot) — better for POI / business names
-    Returns (lat, lon) or (None, None).
-    """
     headers = {'User-Agent': 'CommunityEventHub/1.0'}
 
-    # --- Strategy 1: Nominatim ---
     try:
         params = {'q': location_str, 'format': 'json', 'limit': 1, 'addressdetails': 1}
         r = requests.get('https://nominatim.openstreetmap.org/search',
@@ -97,7 +94,6 @@ def geocode_location(location_str):
     except Exception:
         pass
 
-    # --- Strategy 2: Photon (Komoot) — handles business/POI names better ---
     try:
         params = {'q': location_str, 'limit': 1}
         r = requests.get('https://photon.komoot.io/api/', params=params,
@@ -106,7 +102,7 @@ def geocode_location(location_str):
         features = r.json().get('features', [])
         if features:
             coords = features[0]['geometry']['coordinates']
-            return float(coords[1]), float(coords[0])   # GeoJSON is [lon, lat]
+            return float(coords[1]), float(coords[0])
     except Exception:
         pass
 
@@ -114,7 +110,6 @@ def geocode_location(location_str):
 
 
 def geocode_for_filter(location_str):
-    """Same geocoding but returns a (lat, lon) tuple or raises an exception."""
     lat, lon = geocode_location(location_str)
     if lat is None:
         raise ValueError(f"Could not geocode: {location_str}")
@@ -130,7 +125,6 @@ def login():
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
-        # FIX: Use check_password (hash comparison), not plaintext comparison
         if user and user.check_password(password):
             session['user_id'] = user.id
             session['username'] = user.username
@@ -152,7 +146,6 @@ def signup():
         elif email and User.query.filter_by(email=email).first():
             flash('An account with that email already exists.', 'warning')
         else:
-            # FIX: Hash the password before storing
             user = User(username=username, email=email, is_organizer=is_organizer)
             user.set_password(password)
             db.session.add(user)
@@ -165,7 +158,6 @@ def signup():
 def profile():
     if 'username' not in session:
         return redirect(url_for('login'))
-    # FIX: Use db.session.get() consistently (not deprecated Query.get)
     user = db.session.get(User, session['user_id'])
     attending_events = user.attended_events
     my_events_with_attendees = []
@@ -194,7 +186,6 @@ def dashboard():
 
     query = Event.query
 
-    # Hide past events using proper Date comparison
     today = date_type.today()
     query = query.filter(Event.date >= today)
 
@@ -274,7 +265,6 @@ def attend(event_id):
         flash(f'You are now attending {event.name}!', 'success')
     return redirect(url_for('dashboard'))
 
-# FIX: Added unattend route so users can cancel their RSVP
 @app.route('/unattend/<int:event_id>', methods=['POST'])
 def unattend(event_id):
     if 'user_id' not in session:
@@ -312,14 +302,12 @@ def upload_event():
     icon_file = request.files.get('icon')
     icon_path = None
 
-    # FIX: Parse date string into a proper date object
     try:
         event_date = date_type.fromisoformat(date_str)
     except ValueError:
         flash('Invalid date format.', 'danger')
         return redirect(url_for('upload_event_page'))
 
-    # FIX: Validate file type before saving
     if icon_file and icon_file.filename != '':
         if not allowed_file(icon_file.filename):
             flash('Invalid file type. Only PNG, JPG, GIF, WEBP allowed.', 'danger')
@@ -372,4 +360,4 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)

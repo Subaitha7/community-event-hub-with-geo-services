@@ -1,75 +1,43 @@
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
-*$py.class
-
-# C extensions
-*.so
-
-# Distribution / packaging
+*.pyo
+*.pyd
 .Python
-build/
-develop-eggs/
-dist/
-eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
 *.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+dist/
+build/
+.eggs/
 
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# Virtual Environments
-.env
-.venv
-env/
+# Virtual environments
 venv/
-ENV/
-env.bak/
-venv.bak/
+.venv/
+env/
+.env/
 
-# Flask stuff:
+# Environment variables
+.env
+.env.local
+
+# SQLite (local dev only — production uses PostgreSQL)
+*.db
+*.sqlite3
+
+# Flask session / instance
 instance/
-.webassets-cache
+flask_session/
 
-# VS Code and PyCharm settings
+# Uploaded files (user-generated content — not version controlled)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
 .vscode/
 .idea/
+*.swp
 
-# Database files
-*.sqlite3
-users.db
 
-app_backup.py
-static_backup/
-templates_backup/
-project_fixed/
-upgrade_01/
-static/static/
-*.zip
-
-static/uploads/

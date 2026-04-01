@@ -1,4 +1,7 @@
-Flask
-Flask-SQLAlchemy
-Werkzeug
-geopy
+Flask==3.1.2
+Flask-SQLAlchemy==3.1.1
+Werkzeug==3.1.5
+gunicorn==25.3.0
+psycopg2-binary==2.9.11
+requests==2.32.5
+SQLAlchemy==2.0.40

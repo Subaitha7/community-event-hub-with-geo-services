@@ -1,0 +1,22 @@
+databases:
+  - name: community-event-hub-db
+    databaseName: community_event_hub
+    user: ceh_user
+    plan: free
+
+services:
+  - type: web
+    name: community-event-hub
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 2 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: community-event-hub-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.12.0
