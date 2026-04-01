@@ -20,6 +20,10 @@ database_url = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
+# Ensure SSL is required for Render's PostgreSQL
+if 'postgresql' in database_url and '?' not in database_url:
+    database_url += '?sslmode=require'
+
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
