@@ -18,6 +18,8 @@
 
 **Community Event Hub** is a full-stack web application that lets community members **discover local events on an interactive map**, **RSVP to events**, and **organizers post events** with geo-located pins. Events are geocoded automatically using OpenStreetMap — no API key required.
 
+🔗 Live Demo: https://community-event-hub.onrender.com
+
 Whether you're a local organiser running a yoga class or a resident looking for weekend happenings, Community Event Hub connects people to experiences near them.
 
 ---
@@ -198,5 +200,6 @@ This project is open source. See the repository for license details.
 
 <div align="center">
   Built with ❤️ by <a href="https://github.com/Subaitha7">Subaitha</a>
-  linkedin <a href="https://www.linkedin.com/in/subaitha-m-a152b6367/">Subaitha</a>
+  <br>
+Connect on <a href="https://www.linkedin.com/in/YOUR-LINKEDIN-USERNAME">LinkedIn</a>
 </div>
