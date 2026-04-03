@@ -198,4 +198,5 @@ This project is open source. See the repository for license details.
 
 <div align="center">
   Built with ❤️ by <a href="https://github.com/Subaitha7">Subaitha</a>
+  linkedin <a href="https://www.linkedin.com/in/subaitha-m-a152b6367/">Subaitha</a>
 </div>
