@@ -1,4 +1,4 @@
-# 🗺️ Community Event Hub
+# 🗺️ Community Event Hub with geo-services
 
 <div align="center">
 
