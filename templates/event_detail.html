@@ -108,7 +108,7 @@
     {% endwith %}
 
     <div class="event-detail-card">
-        <img src="{{ url_for('static', filename=event.icon or 'images/default-event.jpg') }}"
+        <img src="{{ event.icon if event.icon and event.icon.startswith('http') else url_for('static', filename='images/default-event.jpg') }}"
              class="event-detail-banner" alt="{{ event.name }}">
 
         <div class="event-detail-body">

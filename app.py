@@ -2,16 +2,35 @@ import os
 import json
 import math
 import requests
+import boto3
 from datetime import datetime, timezone, date as date_type
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
+from botocore.client import Config
 
 app = Flask(__name__)
 
 # Secret key from environment variable (set this in Render dashboard)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-fallback-key-change-in-production')
+R2_ACCOUNT_ID = os.environ.get('R2_ACCOUNT_ID')
+R2_ACCESS_KEY = os.environ.get('R2_ACCESS_KEY')
+R2_SECRET_KEY = os.environ.get('R2_SECRET_KEY')
+R2_BUCKET_NAME = os.environ.get('R2_BUCKET_NAME')
+R2_PUBLIC_URL = os.environ.get('R2_PUBLIC_URL')  
+
+def upload_to_r2(file, filename):
+    s3 = boto3.client(
+        's3',
+        endpoint_url=f'https://{R2_ACCOUNT_ID}.r2.cloudflarestorage.com',
+        aws_access_key_id=R2_ACCESS_KEY,
+        aws_secret_access_key=R2_SECRET_KEY,
+        config=Config(signature_version='s3v4'),
+        region_name='auto'
+    )
+    s3.upload_fileobj(file, R2_BUCKET_NAME, filename, ExtraArgs={'ContentType': file.content_type})
+    return f"{R2_PUBLIC_URL}/{filename}"
 
 # --- Database ---
 # On Render, DATABASE_URL is set automatically by the PostgreSQL add-on.
@@ -241,7 +260,7 @@ def dashboard():
                 'lon': event.longitude,
                 'description': event.description,
                 'keywords': event.keywords,
-                'icon': url_for('static', filename=event.icon or 'images/default-event.jpg'),
+                'icon': event.icon if event.icon and event.icon.startswith('http') else url_for('static', filename='images/default-event.jpg'),
                 'attending': event.id in attended_event_ids,
             })
 
@@ -321,10 +340,7 @@ def upload_event():
             flash('Invalid file type. Only PNG, JPG, GIF, WEBP allowed.', 'danger')
             return redirect(url_for('upload_event_page'))
         filename = secure_filename(icon_file.filename)
-        icon_path = f'uploads/{filename}'
-        upload_folder = os.path.join(app.static_folder, 'uploads')
-        os.makedirs(upload_folder, exist_ok=True)
-        icon_file.save(os.path.join(upload_folder, filename))
+        icon_path = upload_to_r2(icon_file, filename)
 
     lat, lon = geocode_location(location_str)
     if lat is None:

@@ -171,7 +171,7 @@
         <div class="event-list">
             {% for event in events %}
             <div class="event-card" id="event-card-{{ event.id }}">
-                <img src="{{ url_for('static', filename=event.icon or 'images/default-event.jpg') }}" class="event-icon" alt="icon">
+                <img src="{{ event.icon if event.icon and event.icon.startswith('http') else url_for('static', filename='images/default-event.jpg') }}" class="event-icon" alt="icon">
                 <div class="event-details">
                     <a href="{{ url_for('event_detail', event_id=event.id) }}" class="event-title event-title-link">{{ event.name }}</a>
                     <div class="event-meta">
