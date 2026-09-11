@@ -122,6 +122,15 @@
         cursor: default;
         pointer-events: none;
     }
+    /* Sanitized description content — keep basic formatting tidy inside cards */
+    .event-description p,
+    .event-detailed-description p {
+        margin: 0 0 0.5rem 0;
+    }
+    .event-description p:last-child,
+    .event-detailed-description p:last-child {
+        margin-bottom: 0;
+    }
 </style>
 {% endblock %}
 
@@ -177,12 +186,12 @@
                     <div class="event-meta">
                         📍 {{ event.location }} &nbsp;|&nbsp; 📅 {{ event.date.strftime('%d %b %Y') }} &nbsp;|&nbsp; 🏷 {{ event.keywords }}
                     </div>
-                    <div>{{ event.description }}</div>
+                    <div class="event-description">{{ event.description|clean_html|safe }}</div>
                     {% if event.detailed_description %}
                     <div class="event-detailed-description" style="display: none;">
                         <hr style="margin: 10px 0;">
                         <p><strong>Event Details:</strong></p>
-                        <p class="detailed-text">{{ event.detailed_description }}</p>
+                        <div class="detailed-text">{{ event.detailed_description|clean_html|safe }}</div>
                     </div>
                     {% endif %}
                 </div>
@@ -311,10 +320,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     let lastHighlighted = null;
 
+    function stripHtml(html) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        return tmp.textContent || tmp.innerText || '';
+    }
+
     function showPanel(event) {
         panelName.textContent = event.name;
         panelMeta.textContent = `📍 ${event.location}  |  📅 ${event.date}`;
-        panelDesc.textContent = event.description;
+        panelDesc.textContent = stripHtml(event.description);
 
         // FIX: Correct Google Maps directions URL with properly encoded destination
         // Uses lat,lon as destination so it always works regardless of address format

@@ -6,3 +6,4 @@ psycopg2-binary==2.9.11
 requests==2.32.5
 SQLAlchemy==2.0.40
 boto3
+bleach

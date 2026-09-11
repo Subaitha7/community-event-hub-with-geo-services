@@ -9,11 +9,23 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from botocore.client import Config
+import bleach 
 
 app = Flask(__name__)
 
 # Secret key from environment variable (set this in Render dashboard)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-fallback-key-change-in-production')
+# --- Description sanitization ---
+ALLOWED_TAGS = ['p', 'b', 'i', 'strong', 'em', 'br', 'ul', 'ol', 'li', 'a']
+ALLOWED_ATTRS = {'a': ['href', 'title', 'target', 'rel']}
+
+def clean_html(raw):
+    if not raw:
+        return ''
+    return bleach.clean(raw, tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRS, strip=True)
+
+app.jinja_env.filters['clean_html'] = clean_html
+# --- end sanitization setup ---
 R2_ACCOUNT_ID = os.environ.get('R2_ACCOUNT_ID')
 R2_ACCESS_KEY = os.environ.get('R2_ACCESS_KEY')
 R2_SECRET_KEY = os.environ.get('R2_SECRET_KEY')
@@ -323,8 +335,8 @@ def upload_event():
     name = request.form['name']
     location_str = request.form['location']
     date_str = request.form['date']
-    description = request.form['description']
-    detailed_description = request.form.get('detailed_description', '')
+    description = clean_html(request.form['description'])
+    detailed_description = clean_html(request.form.get('detailed_description', ''))
     keywords = request.form['keywords']
     icon_file = request.files.get('icon')
     icon_path = None
